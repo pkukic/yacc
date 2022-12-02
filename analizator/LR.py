@@ -3,7 +3,6 @@ from stack import Stack
 from constants import *
 from leaf import Leaf
 from action import *
-import os
 
 
 class LR:
@@ -117,13 +116,13 @@ class LR:
             
         for i in range(self._input_ptr, len(self._input)):
             leaf = Leaf(self._input[i])
-            # the current sign is a sync sign
             sign_index = self._sign_encodings[leaf.get_name()]
 
+            # the current sign is a sync sign
             if sign_index in self._sync_signs.keys():
                 # remove states and corresponding nodes until a state with a defined action for the sync sign is found
                 while len(self._stack.states_stack) > 0:
-                    # state on the stack has a defined action for the sync sign in input
+                    # state on the stack top has a defined action for the sync sign in input
                     if self._stack.get_last_state() in self._sync_signs[sign_index]:
                         # set input_ptr to point at the sync sign
                         # return True for success
