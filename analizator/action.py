@@ -25,12 +25,20 @@ class Move(Action):
 
     def execute(self, stack: Stack, leaf: Leaf):
         # node in this case will be a Leaf object
-        if self._new_top_state == REJECT:
-            raise Exception("Error has occured!")
-        
         stack.add_state(self._new_top_state)
         stack.add_node(leaf)
         return self.type
+
+
+class Reject(Action):
+    
+    def __init__(self):
+        self.move_ptr = False
+        self.type = REJECT
+    
+
+    def execute(self, stack: Stack, leaf: Leaf):
+        raise Exception("Reject this")
 
 
 class Put(Action):
@@ -45,8 +53,6 @@ class Put(Action):
 
     def execute(self, stack: Stack, leaf: Leaf):
         # node in this case will be a Node object
-        if self._new_top_state == REJECT:
-            raise Exception("Error has occured!")
         stack.add_state(self._new_top_state)
         return self.type    
 
@@ -66,7 +72,7 @@ class Reduct(Action):
     def execute(self, stack: Stack, leaf: Leaf):
         new_node = Node(self._left_side, [])
         # special case of epsilon production
-        if self._right_side == EPSILON:
+        if self._right_side == [EPSILON]:
             new_node.add_child(Leaf(f'{EPSILON} 0 $'))
         else:
             for sign in reversed(self._right_side):

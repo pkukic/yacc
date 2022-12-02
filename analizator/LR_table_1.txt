@@ -1,0 +1,9 @@
+
+a b T <S> <B> <A>
+p_3 p_4 r_2 x s_2 s_1
+x x action==accept x x x
+p_3 p_4 r_2 x s_2 s_5
+p_3 p_4 x x s_6 x
+r_4 r_4 r_4 x x x
+x x r_1 x x x
+r_3 r_3 r_3 x x x

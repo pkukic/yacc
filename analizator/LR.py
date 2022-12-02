@@ -10,7 +10,8 @@ class LR:
 
     _input = None
     _input_ptr = 0
-    _sync_signs = list()
+    _sync_signs = dict()
+    _signs = list()
     _stack = Stack()
     _reductions_temp = list()
     _actions = list()
@@ -28,16 +29,19 @@ class LR:
         with open(lr_table_file, 'r') as lr_table_r:
             lr_table = lr_table_r.read().split(NEWLINE_DELIMITER)[:-1] # last one will be empty -> discard it
             # first row are sync signs
-            self._sync_signs = lr_table[0].split(INLINE_DELIMITER)
+            for sync_sign_index in lr_table[0].split(INLINE_DELIMITER):
+                if sync_sign_index != '':
+                    self._sync_signs.update({int(sync_sign_index): []})
 
             # second row are signs
             for i, sign in enumerate(lr_table[1].split(INLINE_DELIMITER)):
                 self._sign_encodings.update({sign: i})
+                self._signs.append(sign)
             
             for state, action_row in enumerate(lr_table[2:]):
                 self._actions.append([])
 
-                for action_name in action_row.split(INLINE_DELIMITER):
+                for sign_index, action_name in enumerate(action_row.split(INLINE_DELIMITER)):
                     if action_name == ACCEPT:
                         action = Accept()
                     elif action_name[0] == 's':
@@ -52,7 +56,11 @@ class LR:
                         right_side = self._reductions_temp[reduction_number][1:]
                         action = Reduct(left_side, right_side)
                     else:
-                        action = Move(REJECT)
+                        action = Reject()
+                    
+                    # add states for which the sync_sign has a valid action
+                    if type(action) != Reject and sign_index in self._sync_signs.keys():
+                        self._sync_signs[sign_index].append(state)
 
                     self._actions[state].append(action)
 
@@ -65,7 +73,7 @@ class LR:
         while(self._input_ptr <= len(self._input)):
             # what is being read from the input line
             if self._input_ptr == len(self._input):
-                leaf = Leaf(f'{END_OF_INPUT} 0 T')
+                leaf = Leaf(f'{END_OF_INPUT} end_of_file T')
             else:
                 leaf = Leaf(self._input[self._input_ptr])
             
@@ -89,7 +97,50 @@ class LR:
                 if action.move_ptr:
                     self._input_ptr += 1
             except:
-                # TODO!!!!!!!!!!!!!
                 # action not defined
-                # OPORAVAK OD POGREŠKE
-                ...
+                # error recovery
+                print("*****************")
+                print("[SYNTAX ERROR]")
+                print(f"line: {leaf.get_line()}")
+                print(f"expected uniform signs: {self.get_expected_uniform_signs()}")
+                print(f"instead got uniform sign: {leaf.get_name()}, lex: {leaf.get_lex()}")
+                print("*****************")
+                error_recovery_status = self._recover_from_error()
+                if not error_recovery_status:
+                    print("FATAL, could not recover!")
+                    return GenTree(None)
+    
+
+    def _recover_from_error(self):
+        if self._input_ptr >= len(self._input):
+            return False
+            
+        for i in range(self._input_ptr, len(self._input)):
+            leaf = Leaf(self._input[i])
+            # the current sign is a sync sign
+            sign_index = self._sign_encodings[leaf.get_name()]
+
+            if sign_index in self._sync_signs.keys():
+                # remove states and corresponding nodes until a state with a defined action for the sync sign is found
+                while len(self._stack.states_stack) > 0:
+                    # state on the stack has a defined action for the sync sign in input
+                    if self._stack.get_last_state() in self._sync_signs[sign_index]:
+                        # set input_ptr to point at the sync sign
+                        # return True for success
+                        self._input_ptr = i
+                        return True
+                    if len(self._stack.node_stack) > 0:
+                        self._stack.pop_node()
+                    self._stack.pop_state()
+                
+                break
+        
+        return False
+    
+
+    def get_expected_uniform_signs(self):
+        expected = []
+        for i, action in enumerate(self._actions[int(self._stack.get_last_state())]):
+            if type(action) != Put and type(action) != Reject:
+                expected.append(self._signs[i])
+        return expected
