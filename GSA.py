@@ -2,6 +2,19 @@ import itertools
 import pprint
 import copy
 
+TOCKA = '<*>'
+
+class LR_stavka:
+    def __init__(self, prod, T_set):
+        self.prod = prod
+        self.T_set = T_set
+
+    def __repr__(self):
+        s = ''
+        s += f"(P: {self.prod}, T: {self.T_set})"
+        return s
+
+
 class Grammar:
     def __init__(self, nonterm_chars, term_chars, syn_chars, productions, first_nonterm_char):
         self.nonterm_chars = nonterm_chars
@@ -15,6 +28,8 @@ class Grammar:
         self.zapocinje_izravno_znakom = []
         self.zapocinje_znakom = []
         self.zapocinje = {}
+
+        self.lr_stavke = []
 
     def calculate_all_chars(self):
         self.all_chars = self.nonterm_chars + self.term_chars
@@ -32,6 +47,21 @@ class Grammar:
 
         return
 
+    def calculate_lr_stavke(self):
+        lr_stavke = []
+        for prod in self.productions:
+            if prod[1] == '':
+                prod_new = (prod[0], TOCKA)
+                lr_stavke.append(LR_stavka(prod_new, []))
+            else:
+                elems = prod[1].split(' ')
+                for i in range(len(elems)):
+                    prod_new = (prod[0], ' '.join(elems[:i] + [TOCKA] + elems[i:]))
+                    lr_stavke.append(LR_stavka(prod_new, []))
+                lr_stavke.append(LR_stavka((prod[0], ' '.join(elems + [TOCKA])), []))
+        self.lr_stavke = lr_stavke
+
+
     def __repr__(self):
         s = ''
         s += f"NT: {self.nonterm_chars}" + "\n"
@@ -39,7 +69,8 @@ class Grammar:
         s += f"T: {self.term_chars}" + "\n"
         s += f"All: {self.all_chars}" + "\n"
         s += f"Syn: {self.syn_chars}" + "\n"
-        s += f"Prod: {self.productions}" + "\n"
+        s += "Prod:\n"
+        s += pprint.pformat(self.productions) + "\n"
         s += f"Empty chars: {self.empty_chars}" + "\n"
         s += "ZapocinjeIzravnoZnakom:\n"
         s += pprint.pformat(self.zapocinje_izravno_znakom) + "\n"
@@ -47,6 +78,8 @@ class Grammar:
         s += pprint.pformat(self.zapocinje_znakom) + "\n"
         s += "Zapocinje:\n"
         s += pprint.pformat(self.zapocinje) + "\n"
+        s += "LR stavke:\n"
+        s += pprint.pformat(self.lr_stavke) + "\n"
         s += "------------------------------"
         return s
 
@@ -200,6 +233,8 @@ def main():
     g.zapocinje_znakom = w
     print(g)
     g.calculate_zapocinje()
+    print(g)
+    g.calculate_lr_stavke()
     print(g)
     
 
