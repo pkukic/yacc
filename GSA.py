@@ -3,11 +3,23 @@ import pprint
 import copy
 
 TOCKA = '<*>'
+EOS = '#'
 
 class LR_stavka:
     def __init__(self, prod, T_set):
         self.prod = prod
         self.T_set = T_set
+
+    def update_T_set(self, new_T_set):
+        self.T_set = new_T_set
+
+    def __eq__(self, other):
+        return isinstance(other, type(self)) and \
+             self.prod == other.prod and \
+             self.T_set == other.T_set
+
+    def __hash__(self) -> int:
+        return hash((self.prod, self.T_set))
 
     def __repr__(self):
         s = ''
@@ -30,6 +42,9 @@ class Grammar:
         self.zapocinje = {}
 
         self.lr_stavke = []
+        self.visited_stavke = []
+
+        self.enka_transitions = {}
 
     def calculate_all_chars(self):
         self.all_chars = self.nonterm_chars + self.term_chars
@@ -52,14 +67,122 @@ class Grammar:
         for prod in self.productions:
             if prod[1] == '':
                 prod_new = (prod[0], TOCKA)
-                lr_stavke.append(LR_stavka(prod_new, []))
+                lr_stavke.append(LR_stavka(prod_new, ()))
             else:
                 elems = prod[1].split(' ')
                 for i in range(len(elems)):
                     prod_new = (prod[0], ' '.join(elems[:i] + [TOCKA] + elems[i:]))
-                    lr_stavke.append(LR_stavka(prod_new, []))
-                lr_stavke.append(LR_stavka((prod[0], ' '.join(elems + [TOCKA])), []))
+                    lr_stavke.append(LR_stavka(prod_new, ()))
+                lr_stavke.append(LR_stavka((prod[0], ' '.join(elems + [TOCKA])), ()))
         self.lr_stavke = lr_stavke
+
+
+    def move_dot(rhs_as_list):
+        new_rhs = copy.deepcopy(rhs_as_list)
+        dot_pos = new_rhs.index(TOCKA)
+        new_rhs[dot_pos], new_rhs[dot_pos + 1] = new_rhs[dot_pos + 1], new_rhs[dot_pos]
+        return new_rhs
+
+    def find_first_nonempty_char(self, rhs_as_list):
+        for char in rhs_as_list:
+            if char not in self.empty_chars:
+                return char
+        return None
+
+
+    # This thing takes in start_state and outputs a list of next_states
+    # (with calculated T_set)
+    def possible_transitions(self, start_lr_stavka):
+        lhs, rhs = start_lr_stavka.prod
+        T_start = start_lr_stavka.T_set
+
+        rhs_split = rhs.split(' ')
+        dot_pos = rhs_split.index(TOCKA)
+
+        # if the dot is the last character in the RHS, nothing can be generated
+        if dot_pos == len(rhs_split) - 1:
+            return []
+
+        char_after_dot = rhs_split[dot_pos + 1]
+        transition_char = char_after_dot
+        moved_dot_state = LR_stavka(prod=(lhs, ' '.join(Grammar.move_dot(rhs_split))), T_set=T_start)
+        without_eps_transition = [(transition_char, moved_dot_state)]
+
+        if char_after_dot in self.term_chars:
+            return without_eps_transition
+    
+        # find all lr stavke where lhs == char_after_dot
+        new_lr_stavke = [copy.deepcopy(lr) for lr in self.lr_stavke if lr.prod[0] == char_after_dot and \
+             lr.prod[1].startswith(TOCKA)]
+
+        # construct new T_set
+
+        eps_transitions = []
+        
+        # if the character after the dot is the last one,
+        if dot_pos + 1 == len(rhs_split) - 1:
+            # beta doesn't exist
+            # that means new set is equal to old set
+            new_T_set = T_start
+            for stavka in new_lr_stavke:
+                stavka.update_T_set(new_T_set)
+                eps_transitions = [('', stavka) for stavka in new_lr_stavke]
+            
+            return without_eps_transition + eps_transitions
+
+        # otherwise, beta does exist
+        # if all characters in beta are empty,
+        # that means that epsilon can be generated from beta
+        new_T_set = tuple()
+        beta = rhs_split[dot_pos + 2:]
+        if all([x in self.empty_chars for x in beta]):
+            # so count in the old T set
+            new_T_set += T_start
+
+        first_zapocinje = tuple()
+        for char in beta:
+            if len(self.zapocinje[char]) > 0:
+                first_zapocinje = tuple(self.zapocinje[char])
+        
+        new_T_set += first_zapocinje
+        new_T_set = tuple(set(new_T_set))
+
+        for stavka in new_lr_stavke:
+            stavka.update_T_set(new_T_set)
+
+        eps_transitions = [('', stavka) for stavka in new_lr_stavke]
+
+        return without_eps_transition + eps_transitions
+
+
+    def calculate_enka_transitions(self):
+        start_state = copy.deepcopy(self.lr_stavke[0])
+        start_state.update_T_set(tuple('#'))
+        stack_LR_stavke = [start_state]
+        self.visited_stavke.append(start_state)
+        
+        while len(stack_LR_stavke) > 0:
+
+            print(stack_LR_stavke)
+
+            for stavka in stack_LR_stavke:  
+
+                # get all possible transitions  
+                transitions = self.possible_transitions(stavka)
+
+                pprint.pprint(transitions)
+                
+                for char, new_stavka in transitions:
+                
+                    if new_stavka not in self.visited_stavke:
+                        print(new_stavka)
+                        self.visited_stavke.append(new_stavka)
+                        stack_LR_stavke.append(new_stavka)
+                    
+                    self.enka_transitions.setdefault((stavka, char), []).append(new_stavka)
+
+                stack_LR_stavke.remove(stavka)
+        return
 
 
     def __repr__(self):
@@ -80,6 +203,8 @@ class Grammar:
         s += pprint.pformat(self.zapocinje) + "\n"
         s += "LR stavke:\n"
         s += pprint.pformat(self.lr_stavke) + "\n"
+        s += 'ENKA transitions:\n'
+        s += pprint.pformat(self.enka_transitions) + "\n"
         s += "------------------------------"
         return s
 
@@ -236,6 +361,9 @@ def main():
     print(g)
     g.calculate_lr_stavke()
     print(g)
+    g.calculate_enka_transitions()
+    print(g)
+    
     
 
 if __name__ == '__main__':
