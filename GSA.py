@@ -13,7 +13,8 @@ class Grammar:
         s += f"First NT: {self.first_nonterm_char}" + "\n"
         s += f"T: {self.term_chars}" + "\n"
         s += f"Syn: {self.syn_chars}" + "\n"
-        s += f"Prod: {self.productions}"
+        s += f"Prod: {self.productions}" + "\n"
+        s += "------------------------------"
         return s
 
 
@@ -57,9 +58,14 @@ def parse(filestring):
     return Grammar(nonterm_chars=nonterm_chars, term_chars=term_chars, syn_chars=syn_chars, productions=parsed_productions, first_nonterm_char=first_nonterm_char)
 
 
+def add_first_prod(g):
+    g.nonterm_chars.insert(0, '<%>')
+    g.productions.insert(0, ('<%>', g.first_nonterm_char))
+    g.first_nonterm_char = '<%>'
+    return
+
 def find_empty_nonterm_chars(g):
     pass
-
 
 
 
@@ -68,6 +74,8 @@ def main():
     with open(fname, 'r') as file:
         filestring = file.read()
         g = parse(filestring)
+        print(g)
+        add_first_prod(g)
         print(g)
 
 
