@@ -6,16 +6,16 @@ TOCKA = '<*>'
 EOS = '#'
 
 
-# class DKA_State:
-#     def __init__(self, state_id, stavke_list):
-#         self.state_id = state_id
-#         self.stavke_list = stavke_list
+class DKA_State:
+    def __init__(self, state_id, stavke_list):
+        self.state_id = state_id
+        self.stavke_list = stavke_list
 
-#     def __repr__(self):
-#         s = ''
-#         s += f'(StateID: {self.state_id}, '
-#         s += pprint.pformat(self.stavke_list) + ")"
-#         return s
+    def __repr__(self):
+        s = ''
+        s += f'(StateID: {self.state_id}, '
+        s += pprint.pformat(self.stavke_list) + ")"
+        return s
 
 
 class LR_stavka:
@@ -228,7 +228,40 @@ class Grammar:
                 if v not in self.lr_stavke_with_T_sets:
                     self.lr_stavke_with_T_sets.append(v)
         return
-    
+
+    def epsilon_closure(self, stavka):
+        stavke_stack = self.enka_transitions[(stavka, '')]
+        visited = [stavka] + stavke_stack
+        while len(stavke_stack) > 0:
+            new = stavke_stack.pop(0)
+            neighbours = self.enka_transitions[(new, '')]
+            for n in neighbours:
+                if n not in visited:
+                    stavke_stack.append(n)
+                    visited.append(n)
+        return visited
+
+    def eps_closure_general(self, l):
+        ec_set = set()
+        for e in l:
+            ec_set |= set(self.epsilon_closure(e))
+        return list(ec_set)
+
+    def get_transitioned_ecs_from_ec(self, ec):
+        chars = self.all_chars
+        d = {}
+        for c in chars:
+            values_set = set()
+            for s in ec:
+                if (s, c) in self.enka_transitions.keys():
+                    v = self.enka_transitions[(s, c)]
+                    values_set |= set(v)
+            if not len(values_set) == 0:
+                new_ec = self.eps_closure_general(list(values_set))
+                d[c] = new_ec
+        return d
+
+
 
     def __repr__(self):
         s = ''
