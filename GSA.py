@@ -1,14 +1,16 @@
 
 class Grammar:
-    def __init__(self, nonterm_chars, term_chars, syn_chars, productions):
+    def __init__(self, nonterm_chars, term_chars, syn_chars, productions, first_nonterm_char):
         self.nonterm_chars = nonterm_chars
         self.term_chars = term_chars
         self.syn_chars = syn_chars
         self.productions = productions
+        self.first_nonterm_char = first_nonterm_char
 
     def __repr__(self):
         s = ''
         s += f"NT: {self.nonterm_chars}" + "\n"
+        s += f"First NT: {self.first_nonterm_char}" + "\n"
         s += f"T: {self.term_chars}" + "\n"
         s += f"Syn: {self.syn_chars}" + "\n"
         s += f"Prod: {self.productions}"
@@ -37,6 +39,8 @@ def parse(filestring):
     parsed_productions = []
     prev_lhs = ''
 
+    first_nonterm_char = nonterm_chars[0]
+
     for line in productions:
         if not line.startswith(' '):
             prev_lhs = line
@@ -50,14 +54,17 @@ def parse(filestring):
     
     # print('Prod: ', parsed_productions)
 
-    return Grammar(nonterm_chars=nonterm_chars, term_chars=term_chars, syn_chars=syn_chars, productions=parsed_productions)
+    return Grammar(nonterm_chars=nonterm_chars, term_chars=term_chars, syn_chars=syn_chars, productions=parsed_productions, first_nonterm_char=first_nonterm_char)
 
+
+def find_empty_nonterm_chars(g):
+    pass
 
 
 
 
 def main():
-    fname = './san_files/minusLang.san'
+    fname = './san_files/kanon_gramatika.san'
     with open(fname, 'r') as file:
         filestring = file.read()
         g = parse(filestring)
