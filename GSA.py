@@ -5,6 +5,19 @@ import copy
 TOCKA = '<*>'
 EOS = '#'
 
+
+# class DKA_State:
+#     def __init__(self, state_id, stavke_list):
+#         self.state_id = state_id
+#         self.stavke_list = stavke_list
+
+#     def __repr__(self):
+#         s = ''
+#         s += f'(StateID: {self.state_id}, '
+#         s += pprint.pformat(self.stavke_list) + ")"
+#         return s
+
+
 class LR_stavka:
     def __init__(self, prod, T_set):
         self.prod = prod
@@ -46,6 +59,8 @@ class Grammar:
 
         self.enka_transitions = {}
         self.lr_stavke_with_T_sets = []
+
+        # self.grouped_by_eps = []
 
     def calculate_all_chars(self):
         self.all_chars = self.nonterm_chars + self.term_chars
@@ -136,15 +151,28 @@ class Grammar:
         # that means that epsilon can be generated from beta
         new_T_set = tuple()
         beta = rhs_split[dot_pos + 2:]
+
+        print(f'beta: {beta}')
+
         if all([x in self.empty_chars for x in beta]):
             # so count in the old T set
             new_T_set += T_start
 
         first_zapocinje = tuple()
+        i = 0
         for char in beta:
-            if len(self.zapocinje[char]) > 0:
-                first_zapocinje = tuple(self.zapocinje[char])
+            if len(self.zapocinje[char]) > 0 and char in self.empty_chars:
+                first_zapocinje += tuple(self.zapocinje[char])
+                i += 1
+            else:
+                break
         
+        if i <= len(beta) - 1 and beta[i] not in self.empty_chars:
+            first_zapocinje += tuple(self.zapocinje[beta[i]])
+        else:
+            first_zapocinje = tuple()
+        
+
         new_T_set += first_zapocinje
         new_T_set = tuple(set(new_T_set))
 
@@ -164,19 +192,24 @@ class Grammar:
         
         while len(stack_LR_stavke) > 0:
 
-            print(stack_LR_stavke)
+            # print(stack_LR_stavke)
 
-            for stavka in stack_LR_stavke:  
+            for stavka in stack_LR_stavke:
+
+                print(f'trenutno stanje: {stavka}')
 
                 # get all possible transitions  
                 transitions = self.possible_transitions(stavka)
 
+                # pprint.pprint(transitions)
+
+                print(f'prijelazi prema:')
                 pprint.pprint(transitions)
                 
                 for char, new_stavka in transitions:
                 
                     if new_stavka not in self.visited_stavke:
-                        print(new_stavka)
+                        # print(new_stavka)
                         self.visited_stavke.append(new_stavka)
                         stack_LR_stavke.append(new_stavka)
                     
@@ -195,7 +228,7 @@ class Grammar:
                 if v not in self.lr_stavke_with_T_sets:
                     self.lr_stavke_with_T_sets.append(v)
         return
-
+    
 
     def __repr__(self):
         s = ''
@@ -219,6 +252,8 @@ class Grammar:
         s += pprint.pformat(self.enka_transitions) + "\n"
         s += "LR stavke with T sets:\n"
         s += pprint.pformat(self.lr_stavke_with_T_sets) + "\n"
+        # s += "Grouped by eps:\n"
+        # s += pprint.pformat(self.grouped_by_eps) + "\n"
         s += "------------------------------"
         return s
 
@@ -354,7 +389,7 @@ def warshall_transitive_closure(g):
 
 
 def main():
-    fname = './san_files/kanon_gramatika.san'
+    fname = './san_files/minusLang.san'
     with open(fname, 'r') as file:
         filestring = file.read()
    
