@@ -45,6 +45,7 @@ class Grammar:
         self.visited_stavke = []
 
         self.enka_transitions = {}
+        self.lr_stavke_with_T_sets = []
 
     def calculate_all_chars(self):
         self.all_chars = self.nonterm_chars + self.term_chars
@@ -185,6 +186,17 @@ class Grammar:
         return
 
 
+    def calculate_lr_stavke_with_T_sets(self):
+        for k, vals in self.enka_transitions.items():
+            stavka, trans = k
+            if stavka not in self.lr_stavke_with_T_sets:
+                self.lr_stavke_with_T_sets.append(stavka)
+            for v in vals:
+                if v not in self.lr_stavke_with_T_sets:
+                    self.lr_stavke_with_T_sets.append(v)
+        return
+
+
     def __repr__(self):
         s = ''
         s += f"NT: {self.nonterm_chars}" + "\n"
@@ -205,6 +217,8 @@ class Grammar:
         s += pprint.pformat(self.lr_stavke) + "\n"
         s += 'ENKA transitions:\n'
         s += pprint.pformat(self.enka_transitions) + "\n"
+        s += "LR stavke with T sets:\n"
+        s += pprint.pformat(self.lr_stavke_with_T_sets) + "\n"
         s += "------------------------------"
         return s
 
@@ -340,7 +354,7 @@ def warshall_transitive_closure(g):
 
 
 def main():
-    fname = './san_files/minusLang.san'
+    fname = './san_files/kanon_gramatika.san'
     with open(fname, 'r') as file:
         filestring = file.read()
    
@@ -362,6 +376,8 @@ def main():
     g.calculate_lr_stavke()
     print(g)
     g.calculate_enka_transitions()
+    print(g)
+    g.calculate_lr_stavke_with_T_sets()
     print(g)
     
     
