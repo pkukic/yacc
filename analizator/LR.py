@@ -102,12 +102,13 @@ class LR:
             except:
                 # action not defined
                 # error recovery
-                print("*****************")
-                print("[SYNTAX ERROR]")
-                print(f"line: {leaf.get_line()}")
-                print(f"expected uniform signs: {self.get_expected_uniform_signs()}")
-                print(f"instead got uniform sign: {leaf.get_name()}, lex: {leaf.get_lex()}")
-                print("*****************")
+
+                # print("*****************")
+                # print("[SYNTAX ERROR]")
+                # print(f"line: {leaf.get_line()}")
+                # print(f"expected uniform signs: {self.get_expected_uniform_signs()}")
+                # print(f"instead got uniform sign: {leaf.get_name()}, lex: {leaf.get_lex()}")
+                # print("*****************")
                 error_recovery_status = self._recover_from_error()
                 if not error_recovery_status:
                     print("FATAL, could not recover!")
@@ -127,7 +128,7 @@ class LR:
                 # remove states and corresponding nodes until a state with a defined action for the sync sign is found
                 while len(self._stack.states_stack) > 0:
                     # state on the stack top has a defined action for the sync sign in input
-                    if self._stack.get_last_state() in self._sync_signs[sign_index]:
+                    if int(self._stack.get_last_state()) in self._sync_signs[sign_index]:
                         # set input_ptr to point at the sync sign
                         # return True for success
                         self._input_ptr = i
