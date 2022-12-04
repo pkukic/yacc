@@ -77,7 +77,8 @@ class Grammar:
         self.enka_transitions = {}
         self.lr_stavke_with_T_sets = []
 
-        # self.grouped_by_eps = []
+        self.visited_dka = []
+        self.dka_transitions = {}
 
     def calculate_all_chars(self):
         self.all_chars = self.nonterm_chars + self.term_chars
@@ -332,7 +333,8 @@ class Grammar:
                     start_pos, char = k
                     dka_states_stack.append((start_pos, char, v))
         
-        return visited, dka_transitions
+        self.visited_dka = visited
+        self.dka_transitions = dka_transitions
 
 
     def __repr__(self):
@@ -357,8 +359,11 @@ class Grammar:
         s += pprint.pformat(self.enka_transitions) + "\n"
         s += "LR stavke with T sets:\n"
         s += pprint.pformat(self.lr_stavke_with_T_sets) + "\n"
-        # s += "Grouped by eps:\n"
-        # s += pprint.pformat(self.grouped_by_eps) + "\n"
+        s += "DKA visited:\n"
+        s += pprint.pformat(self.visited_dka) + "\n"
+        s += "DKA transitions:\n"
+        for key in self.dka_transitions:
+            s += f"{key[0].state_id} {key[1]} {self.dka_transitions[key].state_id}\n"
         s += "------------------------------"
         return s
 
@@ -519,12 +524,8 @@ def main():
     print(g)
     g.calculate_lr_stavke_with_T_sets()
     print(g)
-    visited, dka_transitions = g.enka_to_dka()
-    pprint.pprint(visited)
-
-    for key in dka_transitions:
-        print(key[0].state_id, key[1], dka_transitions[key].state_id)
-    
+    g.enka_to_dka()
+    print(g)
 
 if __name__ == '__main__':
     main()
