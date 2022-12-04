@@ -86,6 +86,7 @@ class Grammar:
         self.reduciraj_lr = []
 
         self.novostanje = []
+        self.akcija = []
 
 
     def calculate_all_chars(self):
@@ -386,7 +387,44 @@ class Grammar:
         return
 
     def calc_akcija(self):
-        pass
+        self.term_chars.append('#')
+        for i in range(len(self.visited_dka)):
+            self.akcija.append([])
+            for j in range(len(self.term_chars)):
+                self.akcija[i].append(None)
+        pprint.pprint(self.akcija)
+        for i, r in reversed(list(enumerate(self.reduciraj_lr))):
+            # print('i, r', i, r)
+            for s in self.visited_dka:
+                for t in s.stavke_tup:
+                    # print('t sid', t, s.state_id)
+                    if t.prod == r.prod:
+                        chars = t.T_set
+                        for c in chars:
+                            self.akcija[s.state_id][self.term_chars.index(c)] = f'r_{i}'
+        for p in self.pomakni_lr:
+            rhs_split = p.prod[1].split(' ')
+            char_after_dot = rhs_split[rhs_split.index(TOCKA) + 1]
+            if char_after_dot not in self.term_chars:
+                continue
+            for s in self.visited_dka:
+                for ss in s.stavke_tup:
+                    if p.prod == ss.prod:
+                        for key in self.dka_transitions:
+                            if key[1] == char_after_dot:
+                                self.akcija[s.state_id][self.term_chars.index(char_after_dot)] = f'p_{self.dka_transitions[key].state_id}'
+        for s in self.visited_dka:
+            for ss in s.stavke_tup:
+                lhs, rhs = ss.prod
+                t_set = ss.T_set
+                if lhs == FNT and rhs.endswith(TOCKA) and t_set == (EOS,):
+                    self.akcija[s.state_id][self.term_chars.index(EOS)] = 'acc'
+        for i in range(len(self.akcija)):
+            for j in range(len(self.akcija[0])):
+                if self.akcija[i][j] is None:
+                    self.akcijaakcija[i][j] = 'x'
+
+        return
 
     def __repr__(self):
         s = ''
@@ -423,6 +461,8 @@ class Grammar:
         s += pprint.pformat(self.pomakni_lr) + "\n"
         s += "NovoStanje:\n"
         s += pprint.pformat(self.novostanje) + "\n"
+        s += "Akcija:\n"
+        s += pprint.pformat(self.akcija) + "\n"
         s += "------------------------------"
         return s
 
@@ -558,7 +598,7 @@ def warshall_transitive_closure(g):
 
 
 def main():
-    fname = './san_files/kanon_gramatika.san'
+    fname = './san_files/minusLang.san'
     with open(fname, 'r') as file:
         filestring = file.read()
    
@@ -588,6 +628,8 @@ def main():
     g.distribute_lr()
     print(g)
     g.calc_novostanje()
+    print(g)
+    g.calc_akcija()
     print(g)
 
 if __name__ == '__main__':
