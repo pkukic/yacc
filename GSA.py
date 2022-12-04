@@ -336,7 +336,7 @@ class Grammar:
 
                 # pprint.pprint(transitions)
 
-                print(f'prijelazi prema:')
+                # print(f'prijelazi prema:')
                 # pprint.pprint(transitions)
                 
                 for char, new_stavka in transitions:
@@ -417,7 +417,7 @@ class Grammar:
         state_counter += 1
 
         dka_states_stack = []
-        print(f"Start dka state: {start_dka_state}")
+        # print(f"Start dka state: {start_dka_state}")
         prev_dict = self.get_transitioned_ecs_from_ec(start_dka_state)
         # print(prev_dict)
         for key in prev_dict:
@@ -433,7 +433,7 @@ class Grammar:
             new = dka_states_stack.pop(0)
             new_start, new_char, new_v = new
             giv = Grammar.getIfVisited(visited, new_v)
-            print(f'N: {new_v}, V: {visited}, giv: {giv}')
+            # print(f'N: {new_v}, V: {visited}, giv: {giv}')
             if giv is not None:
                 dka_transitions[(new_start, new_char)] = giv
             else:
@@ -469,22 +469,22 @@ class Grammar:
         return
 
     def calc_novostanje(self):
-        print('calc_novostanje')
+        # print('calc_novostanje')
         for i in range(len(self.visited_dka)):
             self.novostanje.append([])
             for j in range(len(self.nonterm_chars)):
                 self.novostanje[i].append(None) 
         # self.novostanje = [[None] * len(self.nonterm_chars)] * len(self.visited_dka)
-        pprint.pprint(self.novostanje)
+        # pprint.pprint(self.novostanje)
         for key in self.dka_transitions:
             if key[1] in self.nonterm_chars:
                 start_id = key[0].state_id
                 char = key[1]
                 char_ind = self.nonterm_chars.index(char)
                 new_state = self.dka_transitions[key].state_id
-                print(start_id, char, char_ind, new_state)
+                # print(start_id, char, char_ind, new_state)
                 self.novostanje[start_id][char_ind] = f's_{new_state}'
-        pprint.pprint(self.novostanje)
+        # pprint.pprint(self.novostanje)
         for i in range(len(self.novostanje)):
             for j in range(len(self.novostanje[0])):
                 if self.novostanje[i][j] is None:
@@ -497,7 +497,7 @@ class Grammar:
             self.akcija.append([])
             for j in range(len(self.term_chars)):
                 self.akcija[i].append(None)
-        pprint.pprint(self.akcija)
+        # pprint.pprint(self.akcija)
         for i, r in reversed(list(enumerate(self.reduciraj_lr))):
             # print('i, r', i, r)
             for s in self.visited_dka:
@@ -606,6 +606,36 @@ class Grammar:
         s += "------------------------------"
         return s
 
+    def run(self):
+        self.add_first_prod()
+        # print(g)
+        self.find_empty_nonterm_chars()
+        # print(g)
+        self.make_zapocinje_izravno_matrix()
+        # print(g)
+        self.warshall_transitive_closure()
+        # print(g)
+        self.calculate_zapocinje()
+        # print(g)
+        self.calculate_lr_stavke()
+        # print(g)
+        self.calculate_enka_transitions()
+        # print(g)
+        self.calculate_lr_stavke_with_T_sets()
+        # print(g)
+        self.enka_to_dka()
+        # print(g)
+        self.distribute_lr()
+        # print(g)
+        self.calc_novostanje()
+        # print(g)
+        self.calc_akcija()
+        # print(g)
+        self.make_lr_table_string()
+        self.make_reductions_string()
+        self.write_to_files()
+        # print(g)
+        return
 
 def parse(filestring):
     as_lines = filestring.splitlines()
@@ -644,41 +674,15 @@ def parse(filestring):
 
 
 def main():
-    fname = './san_files/kanon_gramatika.san'
-    with open(fname, 'r') as file:
-        filestring = file.read()
-   
-    g = parse(filestring)
-    print(g)
-    g.add_first_prod()
-    print(g)
-    g.find_empty_nonterm_chars()
-    print(g)
-    g.make_zapocinje_izravno_matrix()
-    print(g)
-    g.warshall_transitive_closure()
-    print(g)
-    g.calculate_zapocinje()
-    print(g)
-    g.calculate_lr_stavke()
-    print(g)
-    g.calculate_enka_transitions()
-    print(g)
-    g.calculate_lr_stavke_with_T_sets()
-    print(g)
-    g.enka_to_dka()
-    print(g)
-    g.distribute_lr()
-    print(g)
-    g.calc_novostanje()
-    print(g)
-    g.calc_akcija()
-    print(g)
-    g.make_lr_table_string()
-    g.make_reductions_string()
-    g.write_to_files()
-    print(g)
+    input = '\n'.join([line.rstrip() for line in sys.stdin.readlines()])
+    g = parse(input)
+    g.run()
 
+    # fname = './san_files/kanon_gramatika.san'
+    # with open(fname, 'r') as file:
+    #     filestring = file.read()
+   
+   
 if __name__ == '__main__':
     main()
 
