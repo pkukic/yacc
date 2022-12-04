@@ -163,7 +163,7 @@ trenutno stanje: (5)
 
 prijelazi prema:
 trenutno stanje: (6)
-<B> -> a <B> *, { a b # }
+<B> -> a <B> *, { a b # }	
 
 prijelazi prema:
 

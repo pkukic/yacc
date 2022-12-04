@@ -32,12 +32,12 @@ class DKA_State:
         self.state_id = state_id
         self.stavke_tup = stavke_tup
 
-    def update_id(self, state_id):
-        self.state_id = state_id
+    def update_id(self, new_id):
+        self.state_id = new_id
 
-    def __eq__(self, other):
-        return isinstance(other, type(self)) and \
-            set(self.stavke_tup) == set(other.stavke_tup)
+    # def __eq__(self, other):
+    #     return isinstance(other, type(self)) and \
+    #         set(self.stavke_tup) == set(other.stavke_tup)
 
     def __hash__(self):
         return sum([hash(t) for t in self.stavke_tup])
@@ -351,7 +351,6 @@ class Grammar:
                 stack_LR_stavke.remove(stavka)
         return
 
-
     def calculate_lr_stavke_with_T_sets(self):
         for k, vals in self.enka_transitions.items():
             stavka, trans = k
@@ -360,6 +359,7 @@ class Grammar:
             for v in vals:
                 if v not in self.lr_stavke_with_T_sets:
                     self.lr_stavke_with_T_sets.append(v)
+        # print(f'lrtsets, {len(self.lr_stavke_with_T_sets)}')
         return
 
     def epsilon_closure(self, stavka):
@@ -375,81 +375,120 @@ class Grammar:
                     visited.add(n)
         return visited
 
-    def eps_closure_general(self, dka_state):
-        # print('ds', dka_state)
-        ec_set = []
-        for e in dka_state.stavke_tup:
-            # print('\tec', self.epsilon_closure(e))
-            ec_set.extend(self.epsilon_closure(e))
-        # print('ecset', ec_set)
-        return DKA_State(0, tuple(set(ec_set)))
-
-    def get_transitioned_ecs_from_ec(self, ec_dka_state):
-        chars = self.all_chars
-        d = {}
-        for c in chars:
-            values_set = set()
-            for s in ec_dka_state.stavke_tup:
-                if (s, c) in self.enka_transitions.keys():
-                    v = self.enka_transitions[(s, c)]
-                    values_set |= set(v)
-            if not len(values_set) == 0:
-                temp = DKA_State(0, tuple(values_set))
-                new_ec = self.eps_closure_general(temp)
-                d[(ec_dka_state, c)] = new_ec
-        return d
-
-    @staticmethod
-    def getIfVisited(visited_list, new):
-        for item in visited_list:
-            if new == item:
-                return item
-        return None
+    def epsilon_closure_for_list(self, l):
+        ec_set = set()
+        for stavka in l:
+            ec_set |= self.epsilon_closure(stavka)
+        return list(ec_set)
 
     def enka_to_dka(self):
+        hd = {}
+        stack = []
+        transitions = {}
         state_counter = 0
-        # print(f"first: {self.lr_stavke_with_T_sets[0]}")
-        before_start_dka_state = DKA_State(0, tuple([self.lr_stavke_with_T_sets[0]]))
-        # print('bfs', before_start_dka_state)
-        start_dka_state = self.eps_closure_general(before_start_dka_state)
-        # print("sds", start_dka_state)
-        start_dka_state.update_id(state_counter)
-        state_counter += 1
+        stavka_0 = self.lr_stavke_with_T_sets[0]
+        # ovo je lista
+        state_0_stavke = self.epsilon_closure_for_list([stavka_0])
+        first_state = DKA_State(0, tuple(state_0_stavke))
+        hd.update({hash(first_state): first_state})
+        stack.append(first_state)
+        while len(stack) > 0:
+            current_state = stack.pop(0)
+            for char in self.all_chars:
+                new_stavke = []
+                for stavka in current_state.stavke_tup:
+                    desna_strana = stavka.prod[1].split(' ')
+                    tocka_index = desna_strana.index(TOCKA)
+                    
+                    if tocka_index == len(desna_strana) - 1:
+                        continue
 
-        dka_states_stack = []
-        # print(f"Start dka state: {start_dka_state}")
-        prev_dict = self.get_transitioned_ecs_from_ec(start_dka_state)
-        # print(prev_dict)
-        for key in prev_dict:
-            start, char = key
-            v = prev_dict[key]
-            dka_states_stack.append((start, char, v))
+                    if desna_strana[tocka_index + 1] == char:
+                        new_stavke.append(stavka)
+                
+                potential_new_state_productions = self.epsilon_closure_for_list(new_stavke)
+                potential_new_state = DKA_State(0, tuple(potential_new_state_productions))
+                
+                key = hash(potential_new_state)
+                if key in hd:
+                    transitions.update({(current_state, char): hd[key]})
+                else:
+                    state_counter += 1
+                    potential_new_state.update_id(state_counter)
+                    hd.update({key: potential_new_state})
+                    transitions.update({(current_state, char): potential_new_state})
+                    stack.append(potential_new_state)
+        self.dka_transitions = transitions
+        self.visited_dka = hd.values()
+        return
 
-        visited = [start_dka_state]
+
+    # def get_transitioned_ecs_from_ec(self, ec_dka_state):
+    #     chars = self.all_chars
+    #     d = {}
+    #     for c in chars:
+    #         values_set = set()
+    #         for s in ec_dka_state.stavke_tup:
+    #             if (s, c) in self.enka_transitions.keys():
+    #                 v = self.enka_transitions[(s, c)]
+    #                 values_set |= set(v)
+    #         if not len(values_set) == 0:
+    #             temp = DKA_State(0, tuple(values_set))
+    #             new_ec = self.eps_closure_general(temp)
+    #             d[(ec_dka_state, c)] = new_ec
+    #     return d
+
+    # @staticmethod
+    # def getIfVisited(visited_list, new):
+    #     for item in visited_list:
+    #         if new == item:
+    #             return item
+    #     return None
+
+    # def enka_to_dka(self):
+    #     state_counter = 0
+    #     # print(f"first: {self.lr_stavke_with_T_sets[0]}")
+    #     before_start_dka_state = DKA_State(0, tuple([self.lr_stavke_with_T_sets[0]]))
+    #     # print('bfs', before_start_dka_state)
+    #     start_dka_state = self.eps_closure_general(before_start_dka_state)
+    #     # print("sds", start_dka_state)
+    #     start_dka_state.update_id(state_counter)
+    #     state_counter += 1
+
+    #     dka_states_stack = []
+    #     # print(f"Start dka state: {start_dka_state}")
+    #     prev_dict = self.get_transitioned_ecs_from_ec(start_dka_state)
+    #     # print(prev_dict)
+    #     for key in prev_dict:
+    #         start, char = key
+    #         v = prev_dict[key]
+    #         dka_states_stack.append((start, char, v))
+
+    #     visited = [start_dka_state]
         
-        dka_transitions = {}
+    #     dka_transitions = {}
 
-        while len(dka_states_stack) > 0:
-            # print(state_counter)
-            new = dka_states_stack.pop(0)
-            new_start, new_char, new_v = new
-            giv = Grammar.getIfVisited(visited, new_v)
-            # print(f'N: {new_v}, V: {visited}, giv: {giv}')
-            if giv is not None:
-                dka_transitions[(new_start, new_char)] = giv
-            else:
-                new_v.update_id(state_counter)
-                state_counter += 1
-                dka_transitions[(new_start, new_char)] = new_v
-                visited.append(new_v)
-                neighbours = self.get_transitioned_ecs_from_ec(new_v)
-                for k in neighbours:
-                    v = neighbours[k]
-                    start_pos, char = k
-                    dka_states_stack.append((start_pos, char, v))
+    #     while len(dka_states_stack) > 0:
+    #         # print(state_counter)
+    #         new = dka_states_stack.pop(0)
+    #         new_start, new_char, new_v = new
+    #         giv = Grammar.getIfVisited(visited, new_v)
+    #         # print(f'N: {new_v}, V: {visited}, giv: {giv}')
+    #         if giv is not None:
+    #             dka_transitions[(new_start, new_char)] = giv
+    #         else:
+    #             new_v.update_id(state_counter)
+    #             state_counter += 1
+    #             dka_transitions[(new_start, new_char)] = new_v
+    #             visited.append(new_v)
+    #             neighbours = self.get_transitioned_ecs_from_ec(new_v)
+    #             for k in neighbours:
+    #                 v = neighbours[k]
+    #                 start_pos, char = k
+    #                 dka_states_stack.append((start_pos, char, v))
         
-        self.visited_dka = visited
-        self.dka_transitions = dka_transitions
+    #     self.visited_dka = visited
+    #     self.dka_transitions = dka_transitions
 
     def get_all_pomakni(self):
         self.pomakni_lr = [s for s in self.lr_stavke if s.prod[1].split(' ')[-1] != TOCKA]
@@ -659,7 +698,7 @@ class Grammar:
         self.make_lr_table_string()
         self.make_reductions_string()
         self.write_to_files()
-        # # print(self)
+        # print(self)
         return
 
 def parse(filestring):
