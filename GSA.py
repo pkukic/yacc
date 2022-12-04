@@ -541,10 +541,11 @@ class Grammar:
         fs = ''
         syn_indices = [str(self.term_chars.index(s)) for s in self.syn_chars]
         fs += constants.INLINE_DELIMITER.join(syn_indices) + constants.NEWLINE_DELIMITER
-        fs += constants.INLINE_DELIMITER.join(self.term_chars + self.nonterm_chars).replace(EOS, constants.END_OF_INPUT) + constants.NEWLINE_DELIMITER
+        fs += constants.INLINE_DELIMITER.join(self.term_chars + self.nonterm_chars).replace(EOS, constants.END_OF_INPUT).replace(FNT, '') + constants.NEWLINE_DELIMITER
         akcija_and_novostanje = []
+        # print(self)
         for i in range(len(self.akcija)):
-            akcija_and_novostanje.append(self.akcija[i] + self.novostanje[i])
+            akcija_and_novostanje.append(self.akcija[i] + self.novostanje[i][1:])
         for row in akcija_and_novostanje:
             fs += constants.INLINE_DELIMITER.join(row) + constants.NEWLINE_DELIMITER
         self.lr_table_string = fs
