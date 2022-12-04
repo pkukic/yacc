@@ -1,5 +1,5 @@
-INLINE_DELIMITER = "=========*****============="
-NEWLINE_DELIMITER = "*******????%%%%%***********\n"
+INLINE_DELIMITER = "***===***$$$"
+NEWLINE_DELIMITER = "**?==)()=??\n"
 END_OF_INPUT = "_|_"
 EPSILON = "$"
 REJECT = "ACTION FOR THIS TRANSITION IS NOT DEFINED"

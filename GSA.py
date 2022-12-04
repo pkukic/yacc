@@ -397,17 +397,24 @@ class Grammar:
             for char in self.all_chars:
                 new_stavke = []
                 for stavka in current_state.stavke_tup:
+                    lijeva_strana = stavka.prod[0]
                     desna_strana = stavka.prod[1].split(' ')
+                    T_set = stavka.T_set
                     tocka_index = desna_strana.index(TOCKA)
                     
                     if tocka_index == len(desna_strana) - 1:
                         continue
 
                     if desna_strana[tocka_index + 1] == char:
-                        new_stavke.append(stavka)
+                        nova_desna_strana = Grammar.move_dot(desna_strana)
+                        nova_stavka = LR_stavka((lijeva_strana, ' '.join(nova_desna_strana)), tuple(T_set))
+                        new_stavke.append(nova_stavka) 
                 
                 potential_new_state_productions = self.epsilon_closure_for_list(new_stavke)
                 potential_new_state = DKA_State(0, tuple(potential_new_state_productions))
+
+                if len(new_stavke) == 0:
+                    continue
                 
                 key = hash(potential_new_state)
                 if key in hd:
@@ -419,76 +426,9 @@ class Grammar:
                     transitions.update({(current_state, char): potential_new_state})
                     stack.append(potential_new_state)
         self.dka_transitions = transitions
-        self.visited_dka = hd.values()
+        self.visited_dka = list(hd.values())
         return
 
-
-    # def get_transitioned_ecs_from_ec(self, ec_dka_state):
-    #     chars = self.all_chars
-    #     d = {}
-    #     for c in chars:
-    #         values_set = set()
-    #         for s in ec_dka_state.stavke_tup:
-    #             if (s, c) in self.enka_transitions.keys():
-    #                 v = self.enka_transitions[(s, c)]
-    #                 values_set |= set(v)
-    #         if not len(values_set) == 0:
-    #             temp = DKA_State(0, tuple(values_set))
-    #             new_ec = self.eps_closure_general(temp)
-    #             d[(ec_dka_state, c)] = new_ec
-    #     return d
-
-    # @staticmethod
-    # def getIfVisited(visited_list, new):
-    #     for item in visited_list:
-    #         if new == item:
-    #             return item
-    #     return None
-
-    # def enka_to_dka(self):
-    #     state_counter = 0
-    #     # print(f"first: {self.lr_stavke_with_T_sets[0]}")
-    #     before_start_dka_state = DKA_State(0, tuple([self.lr_stavke_with_T_sets[0]]))
-    #     # print('bfs', before_start_dka_state)
-    #     start_dka_state = self.eps_closure_general(before_start_dka_state)
-    #     # print("sds", start_dka_state)
-    #     start_dka_state.update_id(state_counter)
-    #     state_counter += 1
-
-    #     dka_states_stack = []
-    #     # print(f"Start dka state: {start_dka_state}")
-    #     prev_dict = self.get_transitioned_ecs_from_ec(start_dka_state)
-    #     # print(prev_dict)
-    #     for key in prev_dict:
-    #         start, char = key
-    #         v = prev_dict[key]
-    #         dka_states_stack.append((start, char, v))
-
-    #     visited = [start_dka_state]
-        
-    #     dka_transitions = {}
-
-    #     while len(dka_states_stack) > 0:
-    #         # print(state_counter)
-    #         new = dka_states_stack.pop(0)
-    #         new_start, new_char, new_v = new
-    #         giv = Grammar.getIfVisited(visited, new_v)
-    #         # print(f'N: {new_v}, V: {visited}, giv: {giv}')
-    #         if giv is not None:
-    #             dka_transitions[(new_start, new_char)] = giv
-    #         else:
-    #             new_v.update_id(state_counter)
-    #             state_counter += 1
-    #             dka_transitions[(new_start, new_char)] = new_v
-    #             visited.append(new_v)
-    #             neighbours = self.get_transitioned_ecs_from_ec(new_v)
-    #             for k in neighbours:
-    #                 v = neighbours[k]
-    #                 start_pos, char = k
-    #                 dka_states_stack.append((start_pos, char, v))
-        
-    #     self.visited_dka = visited
-    #     self.dka_transitions = dka_transitions
 
     def get_all_pomakni(self):
         self.pomakni_lr = [s for s in self.lr_stavke if s.prod[1].split(' ')[-1] != TOCKA]
@@ -537,28 +477,20 @@ class Grammar:
             self.akcija.append([])
             for j in range(len(self.term_chars)):
                 self.akcija[i].append(None)
-        # pprint.pprint(self.akcija)
+        
         for s in self.visited_dka:
             for t in sorted(s.stavke_tup, key=lambda x: self.lr_stavke.index(LR_stavka(x.prod, tuple())), reverse=True):
-                # print(s.state_id, t)
-                # print(self.reduciraj_lr)
                 for i, r in reversed(list(enumerate(self.reduciraj_lr))):
                     if t.prod == r.prod:
                         chars = t.T_set
                         for c in chars:
                             self.akcija[s.state_id][self.term_chars.index(c)] = f'r_{i}'
-                # pprint.pprint(self.akcija)
-        # for i, r in reversed(list(enumerate(self.reduciraj_lr))):
-        #     # print('i, r', i, r)
-        #     for s in self.visited_dka:
-        #         for t in s.stavke_tup:
-        #             # print('t sid', t, s.state_id)
-        #             if t.prod == r.prod:
-        #                 chars = t.T_set
-        #                 for c in chars:
-        #                     self.akcija[s.state_id][self.term_chars.index(c)] = f'r_{i}'
-        for s in self.visited_dka:
+            
             for ss in s.stavke_tup:
+                lhs, rhs = ss.prod
+                t_set = ss.T_set
+                if lhs == FNT and rhs.endswith(TOCKA) and t_set == (EOS,):
+                    self.akcija[s.state_id][self.term_chars.index(EOS)] = constants.ACCEPT
                 for p in self.pomakni_lr:
                     rhs_split = p.prod[1].split(' ')
                     char_after_dot = rhs_split[rhs_split.index(TOCKA) + 1]
@@ -568,23 +500,7 @@ class Grammar:
                         for key in self.dka_transitions:
                             if key[1] == char_after_dot and key[0].state_id == s.state_id:
                                 self.akcija[s.state_id][self.term_chars.index(char_after_dot)] = f'p_{self.dka_transitions[key].state_id}'
-        # for p in self.pomakni_lr:
-        #     rhs_split = p.prod[1].split(' ')
-        #     char_after_dot = rhs_split[rhs_split.index(TOCKA) + 1]
-        #     if char_after_dot not in self.term_chars:
-        #         continue
-        #     for s in self.visited_dka:
-        #         for ss in s.stavke_tup:
-        #             if p.prod == ss.prod:
-        #                 for key in self.dka_transitions:
-        #                     if key[1] == char_after_dot:
-        #                         self.akcija[s.state_id][self.term_chars.index(char_after_dot)] = f'p_{self.dka_transitions[key].state_id}'
-        for s in self.visited_dka:
-            for ss in s.stavke_tup:
-                lhs, rhs = ss.prod
-                t_set = ss.T_set
-                if lhs == FNT and rhs.endswith(TOCKA) and t_set == (EOS,):
-                    self.akcija[s.state_id][self.term_chars.index(EOS)] = constants.ACCEPT
+        
         for i in range(len(self.akcija)):
             for j in range(len(self.akcija[0])):
                 if self.akcija[i][j] is None:
