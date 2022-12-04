@@ -22,7 +22,13 @@ class Leaf:
         else:
             print((depth * " ") + "$")
     
-
+    
+    def __repr__(self):
+        return self._uniform_sign
+    
+    def __str__(self):
+        return self._uniform_sign
+    
     def get_name(self):
         return self._uniform_sign
     
