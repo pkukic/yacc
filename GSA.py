@@ -4,7 +4,8 @@ import copy
 
 TOCKA = '<*>'
 EOS = '#'
-
+FNT = '<%>'
+EPS = '$'
 
 def find_key_for_value(d, val):
     for key, v in d.items():
@@ -72,13 +73,20 @@ class Grammar:
         self.zapocinje = {}
 
         self.lr_stavke = []
-        self.visited_stavke = []
+        self.visited_stavke = []    
 
         self.enka_transitions = {}
         self.lr_stavke_with_T_sets = []
 
         self.visited_dka = []
         self.dka_transitions = {}
+
+        self.pomakni_lr = []
+        self.prihvati_lr = ''
+        self.reduciraj_lr = []
+
+        self.novostanje = []
+
 
     def calculate_all_chars(self):
         self.all_chars = self.nonterm_chars + self.term_chars
@@ -336,6 +344,49 @@ class Grammar:
         self.visited_dka = visited
         self.dka_transitions = dka_transitions
 
+    def get_all_pomakni(self):
+        self.pomakni_lr = [s for s in self.lr_stavke if s.prod[1].split(' ')[-1] != TOCKA]
+        return
+
+    def get_all_redukcije(self):
+        self.reduciraj_lr = [s for s in self.lr_stavke if s.prod[1].split(' ')[-1] == TOCKA and not (s.prod[0] == FNT and s.prod[1].split(' ')[-1] == TOCKA)]
+        return
+
+    def get_prihvati(self):
+        self.prihvati_lr = [s for s in self.lr_stavke if s.prod[0] == FNT and s.prod[1].split(' ')[-1] == TOCKA][0]
+        return
+
+    def distribute_lr(self):
+        self.get_all_pomakni()
+        self.get_all_redukcije()
+        self.get_prihvati()
+        return
+
+    def calc_novostanje(self):
+        print('calc_novostanje')
+        for i in range(len(self.visited_dka)):
+            self.novostanje.append([])
+            for j in range(len(self.nonterm_chars)):
+                self.novostanje[i].append(None) 
+        # self.novostanje = [[None] * len(self.nonterm_chars)] * len(self.visited_dka)
+        pprint.pprint(self.novostanje)
+        for key in self.dka_transitions:
+            if key[1] in self.nonterm_chars:
+                start_id = key[0].state_id
+                char = key[1]
+                char_ind = self.nonterm_chars.index(char)
+                new_state = self.dka_transitions[key].state_id
+                print(start_id, char, char_ind, new_state)
+                self.novostanje[start_id][char_ind] = f's_{new_state}'
+        pprint.pprint(self.novostanje)
+        for i in range(len(self.novostanje)):
+            for j in range(len(self.novostanje[0])):
+                if self.novostanje[i][j] is None:
+                    self.novostanje[i][j] = 'x'
+        return
+
+    def calc_akcija(self):
+        pass
 
     def __repr__(self):
         s = ''
@@ -364,6 +415,14 @@ class Grammar:
         s += "DKA transitions:\n"
         for key in self.dka_transitions:
             s += f"{key[0].state_id} {key[1]} {self.dka_transitions[key].state_id}\n"
+        s += "Prihvati stavka:\n"
+        s += str(self.prihvati_lr) + "\n"
+        s += "Reduciraj stavke:\n"
+        s += pprint.pformat(self.reduciraj_lr) + "\n"
+        s += "Pomakni stavke:\n"
+        s += pprint.pformat(self.pomakni_lr) + "\n"
+        s += "NovoStanje:\n"
+        s += pprint.pformat(self.novostanje) + "\n"
         s += "------------------------------"
         return s
 
@@ -400,7 +459,7 @@ def parse(filestring):
             # ignoring the case when first line is <space>b or something
             # replace $ (epsilon) with '' (nothing)
             rhs = line.lstrip()
-            rhs = rhs.replace('$', '')
+            rhs = rhs.replace(EPS, '')
             parsed_productions.append((prev_lhs, rhs))
     
     # print('Prod: ', parsed_productions)
@@ -409,9 +468,9 @@ def parse(filestring):
 
 
 def add_first_prod(g):
-    g.nonterm_chars.insert(0, '<%>')
-    g.productions.insert(0, ('<%>', g.first_nonterm_char))
-    g.first_nonterm_char = '<%>'
+    g.nonterm_chars.insert(0, FNT)
+    g.productions.insert(0, (FNT, g.first_nonterm_char))
+    g.first_nonterm_char = FNT
     g.calculate_all_chars()
     return
 
@@ -525,6 +584,10 @@ def main():
     g.calculate_lr_stavke_with_T_sets()
     print(g)
     g.enka_to_dka()
+    print(g)
+    g.distribute_lr()
+    print(g)
+    g.calc_novostanje()
     print(g)
 
 if __name__ == '__main__':
