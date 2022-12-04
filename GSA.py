@@ -534,7 +534,9 @@ class Grammar:
 
     def make_reductions_string(self):
         reductions = self.reduciraj_lr
-        self.redukcije_string = constants.NEWLINE_DELIMITER.join([(r.prod[0] + ' ' + (r.prod[1] if r.prod[1] != TOCKA else constants.EPSILON) ).replace(TOCKA, '').replace(' ', constants.INLINE_DELIMITER) for r in reductions]) + constants.NEWLINE_DELIMITER
+        self.redukcije_string = constants.NEWLINE_DELIMITER.join([(r.prod[0] + ' ' + (r.prod[1] if r.prod[1] != TOCKA else constants.EPSILON)).replace(TOCKA, '')
+                                .replace(' ', constants.INLINE_DELIMITER)[:-1] for r in reductions]) + \
+                                     constants.NEWLINE_DELIMITER
         return
     
     def make_lr_table_string(self):
@@ -609,33 +611,33 @@ class Grammar:
 
     def run(self):
         self.add_first_prod()
-        # print(g)
+        print(self)
         self.find_empty_nonterm_chars()
-        # print(g)
+        print(self)
         self.make_zapocinje_izravno_matrix()
-        # print(g)
+        print(self)
         self.warshall_transitive_closure()
-        # print(g)
+        print(self)
         self.calculate_zapocinje()
-        # print(g)
+        print(self)
         self.calculate_lr_stavke()
-        # print(g)
+        print(self)
         self.calculate_enka_transitions()
-        # print(g)
+        print(self)
         self.calculate_lr_stavke_with_T_sets()
-        # print(g)
+        print(self)
         self.enka_to_dka()
-        # print(g)
+        print(self)
         self.distribute_lr()
-        # print(g)
+        print(self)
         self.calc_novostanje()
-        # print(g)
+        print(self)
         self.calc_akcija()
-        # print(g)
+        print(self)
         self.make_lr_table_string()
         self.make_reductions_string()
         self.write_to_files()
-        # print(g)
+        print(self)
         return
 
 def parse(filestring):
