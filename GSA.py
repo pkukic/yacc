@@ -425,7 +425,7 @@ class Grammar:
             v = prev_dict[key]
             dka_states_stack.append((start, char, v))
 
-        visited = [start_dka_state]
+        visited = {start_dka_state}
         
         dka_transitions = {}
 
@@ -441,7 +441,7 @@ class Grammar:
                 new_v.update_id(state_counter)
                 state_counter += 1
                 dka_transitions[(new_start, new_char)] = new_v
-                visited.append(new_v)
+                visited.add(new_v)
                 neighbours = self.get_transitioned_ecs_from_ec(new_v)
                 for k in neighbours:
                     v = neighbours[k]

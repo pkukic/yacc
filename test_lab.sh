@@ -9,10 +9,10 @@ do
     rm "${ANALIZATOR_DIR}/LR_table.txt" > /dev/null 2>&1
     echo "#################################################################################################"
     echo "Test $i"
-    # if [ "$i" == "8" ] || [ "$i" == "13" ]
-    # then
-    #     continue
-    # fi
+        if [ "$i" == "8" ] || [ "$i" == "13" ]
+        then
+            continue
+        fi
     python3 GSA.py < "$ROOT_DIR/testovi/test_$i/test.san"
     res=$(python3 $ANALIZATOR_DIR/SA.py < $ROOT_DIR/testovi/test_$i/test.in | diff $ROOT_DIR/testovi/test_$i/test.out -)
     if [ "$res" != "" ]
