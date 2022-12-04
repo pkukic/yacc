@@ -498,26 +498,44 @@ class Grammar:
             for j in range(len(self.term_chars)):
                 self.akcija[i].append(None)
         # pprint.pprint(self.akcija)
-        for i, r in reversed(list(enumerate(self.reduciraj_lr))):
-            # print('i, r', i, r)
-            for s in self.visited_dka:
-                for t in s.stavke_tup:
-                    # print('t sid', t, s.state_id)
+        for s in self.visited_dka:
+            for t in s.stavke_tup:
+                for i, r in reversed(list(enumerate(self.reduciraj_lr))):
                     if t.prod == r.prod:
                         chars = t.T_set
                         for c in chars:
                             self.akcija[s.state_id][self.term_chars.index(c)] = f'r_{i}'
-        for p in self.pomakni_lr:
-            rhs_split = p.prod[1].split(' ')
-            char_after_dot = rhs_split[rhs_split.index(TOCKA) + 1]
-            if char_after_dot not in self.term_chars:
-                continue
-            for s in self.visited_dka:
-                for ss in s.stavke_tup:
+        # for i, r in reversed(list(enumerate(self.reduciraj_lr))):
+        #     # print('i, r', i, r)
+        #     for s in self.visited_dka:
+        #         for t in s.stavke_tup:
+        #             # print('t sid', t, s.state_id)
+        #             if t.prod == r.prod:
+        #                 chars = t.T_set
+        #                 for c in chars:
+        #                     self.akcija[s.state_id][self.term_chars.index(c)] = f'r_{i}'
+        for s in self.visited_dka:
+            for ss in s.stavke_tup:
+                for p in self.pomakni_lr:
+                    rhs_split = p.prod[1].split(' ')
+                    char_after_dot = rhs_split[rhs_split.index(TOCKA) + 1]
+                    if char_after_dot not in self.term_chars:
+                        continue
                     if p.prod == ss.prod:
                         for key in self.dka_transitions:
                             if key[1] == char_after_dot:
                                 self.akcija[s.state_id][self.term_chars.index(char_after_dot)] = f'p_{self.dka_transitions[key].state_id}'
+        # for p in self.pomakni_lr:
+        #     rhs_split = p.prod[1].split(' ')
+        #     char_after_dot = rhs_split[rhs_split.index(TOCKA) + 1]
+        #     if char_after_dot not in self.term_chars:
+        #         continue
+        #     for s in self.visited_dka:
+        #         for ss in s.stavke_tup:
+        #             if p.prod == ss.prod:
+        #                 for key in self.dka_transitions:
+        #                     if key[1] == char_after_dot:
+        #                         self.akcija[s.state_id][self.term_chars.index(char_after_dot)] = f'p_{self.dka_transitions[key].state_id}'
         for s in self.visited_dka:
             for ss in s.stavke_tup:
                 lhs, rhs = ss.prod
