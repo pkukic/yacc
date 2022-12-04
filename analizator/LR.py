@@ -9,7 +9,11 @@ class LR:
 
     _input = None
     _input_ptr = 0
+
+    # key = index of sync sign
+    # value = set of states with a defined action for the sign
     _sync_signs = dict()
+
     _signs = list()
     _stack = Stack()
     _reductions_temp = list()
@@ -30,7 +34,7 @@ class LR:
             # first row are sync signs
             for sync_sign_index in lr_table[0].split(INLINE_DELIMITER):
                 if sync_sign_index != '':
-                    self._sync_signs.update({int(sync_sign_index): []})
+                    self._sync_signs.update({int(sync_sign_index): set()})
 
             # second row are signs
             for i, sign in enumerate(lr_table[1].split(INLINE_DELIMITER)):
@@ -59,7 +63,7 @@ class LR:
                     
                     # add states for which the sync_sign has a valid action
                     if type(action) != Reject and sign_index in self._sync_signs.keys():
-                        self._sync_signs[sign_index].append(state)
+                        self._sync_signs[sign_index].add(state)
 
                     self._actions[state].append(action)
 

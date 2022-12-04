@@ -16,7 +16,7 @@ def main():
     lr = LR(os.path.join(analizator_dir, REDUCTIONS_FILE), os.path.join(analizator_dir, LR_TABLE_FILE))
     d = "d 1 d"
     c = "c 2 c"
-    input = [c, c, d, c, d]
+    input = [c, d, d]
     g_tree = lr.parse(input)
     g_tree.print()
 
