@@ -1,6 +1,9 @@
 import itertools
 import pprint
 import copy
+import sys
+
+import analizator.constants as constants
 
 TOCKA = '<*>'
 EOS = '#'
@@ -87,6 +90,9 @@ class Grammar:
 
         self.novostanje = []
         self.akcija = []
+
+        self.lr_table_string = ''
+        self.redukcije_string = ''
 
 
     def calculate_all_chars(self):
@@ -426,6 +432,26 @@ class Grammar:
 
         return
 
+
+    def make_reductions_string(self):
+        reductions = self.reduciraj_lr
+        self.redukcije_string = constants.NEWLINE_DELIMITER.join([(r.prod[0] + ' ' + r.prod[1]).replace(TOCKA, '').replace(' ', constants.INLINE_DELIMITER) for r in reductions]) + constants.NEWLINE_DELIMITER
+        return
+    
+    def make_lr_table_string(self):
+        fs = ''
+        syn_indices = [str(self.all_chars.index(s)) for s in self.syn_chars]
+        fs += constants.INLINE_DELIMITER.join(syn_indices) + constants.NEWLINE_DELIMITER
+        fs += constants.INLINE_DELIMITER.join(self.all_chars) + constants.NEWLINE_DELIMITER
+        akcija_and_novostanje = []
+        for i in range(len(self.akcija)):
+            akcija_and_novostanje.append(self.akcija[i] + self.novostanje[i])
+        for row in akcija_and_novostanje:
+            fs += constants.INLINE_DELIMITER.join(row) + constants.NEWLINE_DELIMITER
+        self.lr_table_string = fs
+        return
+    
+
     def __repr__(self):
         s = ''
         s += f"NT: {self.nonterm_chars}" + "\n"
@@ -463,6 +489,10 @@ class Grammar:
         s += pprint.pformat(self.novostanje) + "\n"
         s += "Akcija:\n"
         s += pprint.pformat(self.akcija) + "\n"
+        s += "Redukcije string:\n"
+        s += self.redukcije_string + "\n"
+        s += "LR table string:\n"
+        s += self.lr_table_string + "\n"
         s += "------------------------------"
         return s
 
@@ -630,6 +660,9 @@ def main():
     g.calc_novostanje()
     print(g)
     g.calc_akcija()
+    print(g)
+    g.make_lr_table_string()
+    g.make_reductions_string()
     print(g)
 
 if __name__ == '__main__':
