@@ -523,7 +523,7 @@ class Grammar:
                 lhs, rhs = ss.prod
                 t_set = ss.T_set
                 if lhs == FNT and rhs.endswith(TOCKA) and t_set == (EOS,):
-                    self.akcija[s.state_id][self.term_chars.index(EOS)] = 'acc'
+                    self.akcija[s.state_id][self.term_chars.index(EOS)] = constants.ACCEPT
         for i in range(len(self.akcija)):
             for j in range(len(self.akcija[0])):
                 if self.akcija[i][j] is None:
