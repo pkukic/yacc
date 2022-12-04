@@ -3,13 +3,10 @@ a b T <S> <A> <B>
 p_4 p_5 x s_1 s_2 s_3
 x x action==accept x x x
 p_7 x x x s_6 x
-p_4 p_5 r_3 s_8 s_9 s_10
+p_4 p_5 r_3 s_8 s_2 s_3
 r_4 x x x x x
 r_5 r_5 r_5 x x x
-p_4 p_5 r_2 s_11 s_9 s_10
+p_4 p_5 r_2 s_9 s_2 s_3
 r_4 r_4 r_4 x x x
 x x r_1 x x x
-x x x x s_12 x
-x x r_3 s_8 x x
 x x r_0 x x x
-x x r_2 s_11 x x

@@ -363,8 +363,8 @@ class Grammar:
         return
 
     def epsilon_closure(self, stavka):
-        new_stavka = stavka
-        stavke_stack = self.enka_transitions.setdefault((new_stavka, ''), [])
+        new_stavka = copy.deepcopy(stavka)
+        stavke_stack = copy.deepcopy(self.enka_transitions.setdefault((new_stavka, ''), []))
         visited = set([new_stavka] + stavke_stack)
         while len(stavke_stack) > 0:
             new = stavke_stack.pop(0)
@@ -430,7 +430,7 @@ class Grammar:
         dka_transitions = {}
 
         while len(dka_states_stack) > 0:
-            print(state_counter)
+            # print(state_counter)
             new = dka_states_stack.pop(0)
             new_start, new_char, new_v = new
             giv = Grammar.getIfVisited(visited, new_v)
@@ -508,7 +508,7 @@ class Grammar:
                         chars = t.T_set
                         for c in chars:
                             self.akcija[s.state_id][self.term_chars.index(c)] = f'r_{i}'
-                pprint.pprint(self.akcija)
+                # pprint.pprint(self.akcija)
         # for i, r in reversed(list(enumerate(self.reduciraj_lr))):
         #     # print('i, r', i, r)
         #     for s in self.visited_dka:
@@ -659,7 +659,7 @@ class Grammar:
         self.make_lr_table_string()
         self.make_reductions_string()
         self.write_to_files()
-        # print(self)
+        # # print(self)
         return
 
 def parse(filestring):
