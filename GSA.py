@@ -179,7 +179,7 @@ class Grammar:
         new_T_set = tuple()
         beta = rhs_split[dot_pos + 2:]
 
-        print(f'beta: {beta}')
+        # print(f'beta: {beta}')
 
         if all([x in self.empty_chars for x in beta]):
             # so count in the old T set
@@ -194,7 +194,7 @@ class Grammar:
             else:
                 break
         
-        print(f'i, {i}')
+        # print(f'i, {i}')
         if i <= len(beta) - 1 and beta[i] not in self.empty_chars:
             first_zapocinje += tuple(self.zapocinje[beta[i]])
         else:
@@ -224,7 +224,7 @@ class Grammar:
 
             for stavka in stack_LR_stavke:
 
-                print(f'trenutno stanje: {stavka}')
+                # print(f'trenutno stanje: {stavka}')
 
                 # get all possible transitions  
                 transitions = self.possible_transitions(stavka)
@@ -232,7 +232,7 @@ class Grammar:
                 # pprint.pprint(transitions)
 
                 print(f'prijelazi prema:')
-                pprint.pprint(transitions)
+                # pprint.pprint(transitions)
                 
                 for char, new_stavka in transitions:
                 
@@ -422,7 +422,7 @@ class Grammar:
         for i in range(len(self.akcija)):
             for j in range(len(self.akcija[0])):
                 if self.akcija[i][j] is None:
-                    self.akcijaakcija[i][j] = 'x'
+                    self.akcija[i][j] = 'x'
 
         return
 
@@ -598,7 +598,7 @@ def warshall_transitive_closure(g):
 
 
 def main():
-    fname = './san_files/minusLang.san'
+    fname = './san_files/kanon_gramatika.san'
     with open(fname, 'r') as file:
         filestring = file.read()
    
