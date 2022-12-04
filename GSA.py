@@ -543,7 +543,7 @@ class Grammar:
         fs += constants.INLINE_DELIMITER.join(syn_indices) + constants.NEWLINE_DELIMITER
         fs += constants.INLINE_DELIMITER.join(self.term_chars + self.nonterm_chars[1:]).replace(EOS, constants.END_OF_INPUT) + constants.NEWLINE_DELIMITER
         akcija_and_novostanje = []
-        print(self)
+        # print(self)
         for i in range(len(self.akcija)):
             akcija_and_novostanje.append(self.akcija[i] + self.novostanje[i][1:])
         for row in akcija_and_novostanje:
