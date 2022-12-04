@@ -552,8 +552,8 @@ class Grammar:
 
     def make_reductions_string(self):
         reductions = self.reduciraj_lr
-        self.redukcije_string = constants.NEWLINE_DELIMITER.join([(r.prod[0] + ' ' + (r.prod[1] if r.prod[1] != TOCKA else constants.EPSILON)).replace(TOCKA, '')
-                                .replace(' ', constants.INLINE_DELIMITER)[:-1] for r in reductions]) + \
+        self.redukcije_string = constants.NEWLINE_DELIMITER.join([(r.prod[0] + ' ' + (r.prod[1] if r.prod[1] != TOCKA else constants.EPSILON)).replace(TOCKA, '').rstrip()
+                                .replace(' ', constants.INLINE_DELIMITER) for r in reductions]) + \
                                      constants.NEWLINE_DELIMITER
         return
     
@@ -563,7 +563,7 @@ class Grammar:
         fs += constants.INLINE_DELIMITER.join(syn_indices) + constants.NEWLINE_DELIMITER
         fs += constants.INLINE_DELIMITER.join(self.term_chars + self.nonterm_chars[1:]).replace(EOS, constants.END_OF_INPUT) + constants.NEWLINE_DELIMITER
         akcija_and_novostanje = []
-        # print(self)
+        # #print(self)
         for i in range(len(self.akcija)):
             akcija_and_novostanje.append(self.akcija[i] + self.novostanje[i][1:])
         for row in akcija_and_novostanje:
@@ -631,31 +631,31 @@ class Grammar:
         self.add_first_prod()
         # print(self)
         self.find_empty_nonterm_chars()
-        # print(self)
+        print(self)
         self.make_zapocinje_izravno_matrix()
-        # print(self)
+        print(self)
         self.warshall_transitive_closure()
-        # print(self)
+        print(self)
         self.calculate_zapocinje()
-        # print(self)
+        print(self)
         self.calculate_lr_stavke()
-        # print(self)
+        print(self)
         self.calculate_enka_transitions()
-        # print(self)
+        print(self)
         self.calculate_lr_stavke_with_T_sets()
-        # print(self)
+        print(self)
         self.enka_to_dka()
-        # print(self)
+        print(self)
         self.distribute_lr()
-        # print(self)
+        print(self)
         self.calc_novostanje()
-        # print(self)
+        print(self)
         self.calc_akcija()
-        # print(self)
+        print(self)
         self.make_lr_table_string()
         self.make_reductions_string()
         self.write_to_files()
-        # print(self)
+        print(self)
         return
 
 def parse(filestring):
