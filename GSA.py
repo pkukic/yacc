@@ -288,7 +288,7 @@ class Grammar:
     def getIfVisited(visited_list, new):
         for item in visited_list:
             if new == item:
-                return item.state_id
+                return item
         return None
 
     def enka_to_dka(self):
@@ -494,7 +494,7 @@ def warshall_transitive_closure(g):
 
 
 def main():
-    fname = './san_files/minusLang.san'
+    fname = './san_files/kanon_gramatika.san'
     with open(fname, 'r') as file:
         filestring = file.read()
    
@@ -521,8 +521,9 @@ def main():
     print(g)
     visited, dka_transitions = g.enka_to_dka()
     pprint.pprint(visited)
-    # pprint.pprint(dka_transitions)
-    
+
+    for key in dka_transitions:
+        print(key[0].state_id, key[1], dka_transitions[key].state_id)
     
 
 if __name__ == '__main__':
