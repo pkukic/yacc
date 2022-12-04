@@ -19,7 +19,7 @@ class DKA_State:
         self.stavke_tup = stavke_tup
 
     def update_id(self, state_id):
-        self.stavke_tup = state_id
+        self.state_id = state_id
 
     def __eq__(self, other):
         return isinstance(other, type(self)) and \
@@ -248,8 +248,9 @@ class Grammar:
         return
 
     def epsilon_closure(self, stavka):
-        stavke_stack = self.enka_transitions.setdefault((stavka, ''), [])
-        visited = [stavka] + stavke_stack
+        new_stavka = copy.deepcopy(stavka)
+        stavke_stack = copy.deepcopy(self.enka_transitions.setdefault((new_stavka, ''), []))
+        visited = [new_stavka] + stavke_stack
         while len(stavke_stack) > 0:
             new = stavke_stack.pop(0)
             neighbours = self.enka_transitions.setdefault((new, ''), [])
@@ -260,10 +261,13 @@ class Grammar:
         return visited
 
     def eps_closure_general(self, dka_state):
-        ec_set = set()
+        # print('ds', dka_state)
+        ec_set = []
         for e in dka_state.stavke_tup:
-            ec_set |= set(self.epsilon_closure(e))
-        return DKA_State(0, tuple(ec_set))
+            # print('\tec', self.epsilon_closure(e))
+            ec_set.extend(self.epsilon_closure(e))
+        # print('ecset', ec_set)
+        return DKA_State(0, tuple(set(ec_set)))
 
     def get_transitioned_ecs_from_ec(self, ec_dka_state):
         chars = self.all_chars
@@ -289,13 +293,18 @@ class Grammar:
 
     def enka_to_dka(self):
         state_counter = 0
+        # print(f"first: {self.lr_stavke_with_T_sets[0]}")
         before_start_dka_state = DKA_State(0, tuple([self.lr_stavke_with_T_sets[0]]))
+        # print('bfs', before_start_dka_state)
         start_dka_state = self.eps_closure_general(before_start_dka_state)
+        # print("sds", start_dka_state)
         start_dka_state.update_id(state_counter)
         state_counter += 1
 
         dka_states_stack = []
+        print(f"Start dka state: {start_dka_state}")
         prev_dict = self.get_transitioned_ecs_from_ec(start_dka_state)
+        # print(prev_dict)
         for key in prev_dict:
             start, char = key
             v = prev_dict[key]
@@ -485,7 +494,7 @@ def warshall_transitive_closure(g):
 
 
 def main():
-    fname = './san_files/kanon_gramatika.san'
+    fname = './san_files/minusLang.san'
     with open(fname, 'r') as file:
         filestring = file.read()
    
@@ -512,7 +521,7 @@ def main():
     print(g)
     visited, dka_transitions = g.enka_to_dka()
     pprint.pprint(visited)
-    pprint.pprint(dka_transitions)
+    # pprint.pprint(dka_transitions)
     
     
 
