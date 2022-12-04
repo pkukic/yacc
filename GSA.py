@@ -523,7 +523,7 @@ class Grammar:
                         continue
                     if p.prod == ss.prod:
                         for key in self.dka_transitions:
-                            if key[1] == char_after_dot:
+                            if key[1] == char_after_dot and key[0].state_id == s.state_id:
                                 self.akcija[s.state_id][self.term_chars.index(char_after_dot)] = f'p_{self.dka_transitions[key].state_id}'
         # for p in self.pomakni_lr:
         #     rhs_split = p.prod[1].split(' ')
@@ -629,33 +629,33 @@ class Grammar:
 
     def run(self):
         self.add_first_prod()
-        print(self)
+        # print(self)
         self.find_empty_nonterm_chars()
-        print(self)
+        # print(self)
         self.make_zapocinje_izravno_matrix()
-        print(self)
+        # print(self)
         self.warshall_transitive_closure()
-        print(self)
+        # print(self)
         self.calculate_zapocinje()
-        print(self)
+        # print(self)
         self.calculate_lr_stavke()
-        print(self)
+        # print(self)
         self.calculate_enka_transitions()
-        print(self)
+        # print(self)
         self.calculate_lr_stavke_with_T_sets()
-        print(self)
+        # print(self)
         self.enka_to_dka()
-        print(self)
+        # print(self)
         self.distribute_lr()
-        print(self)
+        # print(self)
         self.calc_novostanje()
-        print(self)
+        # print(self)
         self.calc_akcija()
-        print(self)
+        # print(self)
         self.make_lr_table_string()
         self.make_reductions_string()
         self.write_to_files()
-        print(self)
+        # print(self)
         return
 
 def parse(filestring):

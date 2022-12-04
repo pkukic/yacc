@@ -2,7 +2,7 @@
 a b T <S> <A> <B>
 p_4 p_5 x s_1 s_2 s_3
 x x action==accept x x x
-p_4 x x x s_6 x
+p_7 x x x s_6 x
 p_4 p_5 r_3 s_8 s_2 s_3
 r_4 x x x x x
 r_5 r_5 r_5 x x x
