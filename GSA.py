@@ -430,6 +430,7 @@ class Grammar:
         dka_transitions = {}
 
         while len(dka_states_stack) > 0:
+            # print(dka_states_stack)
             new = dka_states_stack.pop(0)
             new_start, new_char, new_v = new
             giv = Grammar.getIfVisited(visited, new_v)
@@ -499,12 +500,15 @@ class Grammar:
                 self.akcija[i].append(None)
         # pprint.pprint(self.akcija)
         for s in self.visited_dka:
-            for t in s.stavke_tup:
+            for t in sorted(s.stavke_tup, key=lambda x: self.lr_stavke.index(LR_stavka(x.prod, tuple())), reverse=True):
+                print(s.state_id, t)
+                print(self.reduciraj_lr)
                 for i, r in reversed(list(enumerate(self.reduciraj_lr))):
                     if t.prod == r.prod:
                         chars = t.T_set
                         for c in chars:
                             self.akcija[s.state_id][self.term_chars.index(c)] = f'r_{i}'
+                pprint.pprint(self.akcija)
         # for i, r in reversed(list(enumerate(self.reduciraj_lr))):
         #     # print('i, r', i, r)
         #     for s in self.visited_dka:
@@ -629,29 +633,29 @@ class Grammar:
 
     def run(self):
         self.add_first_prod()
-        # print(self)
+        print(self)
         self.find_empty_nonterm_chars()
-        # print(self)
+        print(self)
         self.make_zapocinje_izravno_matrix()
-        # print(self)
+        print(self)
         self.warshall_transitive_closure()
-        # print(self)
+        print(self)
         self.calculate_zapocinje()
-        # print(self)
+        print(self)
         self.calculate_lr_stavke()
-        # print(self)
+        print(self)
         self.calculate_enka_transitions()
-        # print(self)
+        print(self)
         self.calculate_lr_stavke_with_T_sets()
-        # print(self)
+        print(self)
         self.enka_to_dka()
-        # print(self)
+        print(self)
         self.distribute_lr()
-        # print(self)
+        print(self)
         self.calc_novostanje()
-        # print(self)
+        print(self)
         self.calc_akcija()
-        # print(self)
+        print(self)
         self.make_lr_table_string()
         self.make_reductions_string()
         self.write_to_files()

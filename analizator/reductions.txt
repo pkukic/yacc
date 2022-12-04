@@ -1,6 +1,4 @@
-<S> <A> <A> <S>
-<S> <B> <S>
-<S> <A> <A>
 <S> <B>
-<A> a
-<B> b
+<S> <A>
+<B> a a b
+<A> a a b
