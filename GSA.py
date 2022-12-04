@@ -40,7 +40,7 @@ class DKA_State:
             set(self.stavke_tup) == set(other.stavke_tup)
 
     def __hash__(self):
-        return hash((self.state_id, self.stavke_tup))
+        return sum([hash(t) for t in self.stavke_tup])
 
     def __repr__(self):
         s = ''
@@ -363,16 +363,16 @@ class Grammar:
         return
 
     def epsilon_closure(self, stavka):
-        new_stavka = copy.deepcopy(stavka)
-        stavke_stack = copy.deepcopy(self.enka_transitions.setdefault((new_stavka, ''), []))
-        visited = [new_stavka] + stavke_stack
+        new_stavka = stavka
+        stavke_stack = self.enka_transitions.setdefault((new_stavka, ''), [])
+        visited = set([new_stavka] + stavke_stack)
         while len(stavke_stack) > 0:
             new = stavke_stack.pop(0)
             neighbours = self.enka_transitions.setdefault((new, ''), [])
             for n in neighbours:
                 if n not in visited:
                     stavke_stack.append(n)
-                    visited.append(n)
+                    visited.add(n)
         return visited
 
     def eps_closure_general(self, dka_state):
@@ -430,7 +430,7 @@ class Grammar:
         dka_transitions = {}
 
         while len(dka_states_stack) > 0:
-            # print(dka_states_stack)
+            print(state_counter)
             new = dka_states_stack.pop(0)
             new_start, new_char, new_v = new
             giv = Grammar.getIfVisited(visited, new_v)
