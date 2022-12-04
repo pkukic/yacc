@@ -1,0 +1,12 @@
+0
+c d T <S> <C>
+p_3 p_4 x s_1 s_2
+x x action==accept x x
+p_6 p_7 x x s_5
+p_3 p_4 x x s_8
+r_3 r_3 x x x
+x x r_1 x x
+p_6 p_7 x x s_9
+x x r_3 x x
+r_2 r_2 x x x
+x x r_2 x x
