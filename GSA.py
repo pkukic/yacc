@@ -534,7 +534,7 @@ class Grammar:
 
     def make_reductions_string(self):
         reductions = self.reduciraj_lr
-        self.redukcije_string = constants.NEWLINE_DELIMITER.join([(r.prod[0] + ' ' + r.prod[1]).replace(TOCKA, '').replace(' ', constants.INLINE_DELIMITER) for r in reductions]) + constants.NEWLINE_DELIMITER
+        self.redukcije_string = constants.NEWLINE_DELIMITER.join([(r.prod[0] + ' ' + (r.prod[1] if r.prod[1] != TOCKA else constants.EPSILON) ).replace(TOCKA, '').replace(' ', constants.INLINE_DELIMITER) for r in reductions]) + constants.NEWLINE_DELIMITER
         return
     
     def make_lr_table_string(self):
